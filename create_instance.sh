@@ -3,7 +3,7 @@
 echo "******* Oci instance launch ! ************"
 echo "Choose your Shape ||{**}||" 
 echo
-oci compute shape list --c $compartment_id --output table --query "sort_by(data[?contains("shape",'VM.Standard.E2.1.Micro')],&\"shape\") [*].{ShapeName:shape,Memory:\"memory-in-gbs\",CPUcores:ocpus}"
+oci compute shape list -c $compartment_id --output table --query "sort_by(data[?contains("shape",'VM.Standard.E2.1.Micro')],&\"shape\") [*].{ShapeName:shape,Memory:\"memory-in-gbs\",CPUcores:ocpus}"
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 BLUE='\033[1;34m'
@@ -11,8 +11,8 @@ echo -e "Note: If ${RED} VM.Standard2.1${GREEN} is not listed that means that yo
 read -p "Enter the Shape name you wish to create [VM.Standard.E2.1.Micro]: " shape
 shape=${shape:-"VM.Standard.E2.1.Micro"}
 
-read -p "Enter the Path of your ssh key [/c/Users/brokedba/oci/.ssh/id_rsa.pub]: " public_key
-public_key=${public_key:-/c/oracle/oci/.ssh/id_rsa.pub}  # this is a GITbash path
+read -p "Enter the Path of your ssh key [/home/ubuntu/.ssh/authorized_keys]: " public_key
+public_key=${public_key:-/home/ubuntu/.ssh/authorized_keys}  # this is a GITbash path
 read -p "Enter the name of your new Instance ["Demo-Cli-Instance"]: " instance_name
 instance_name=${instance_name:-"Demo-Cli-Instance"}
  echo selected Instance name : $sub_name
@@ -27,27 +27,27 @@ select opt in "${options[@]}"
 do
   case $opt in
         "Oracle-Linux")
-          oci compute image list --c $compartment_id --query "reverse(sort_by(data[?contains(\"display-name\",'Oracle-Linux')],&\"time-created\")) |[0:1].{ImageName:\"display-name\", OCID:id, OS:\"operating-system\", Size:\"size-in-mbs\",time:\"time-created\"}" --output table
+          oci compute image list -c $compartment_id --query "reverse(sort_by(data[?contains(\"display-name\",'Oracle-Linux')],&\"time-created\")) |[0:1].{ImageName:\"display-name\", OCID:id, OS:\"operating-system\", Size:\"size-in-mbs\",time:\"time-created\"}" --output table
           ocid_img=$(oci compute image list -c $compartment_id --query "reverse(sort_by(data[?contains(\"display-name\",'Oracle-Linux')],&\"time-created\")) |[0].id" --raw-output) 
           break
           ;;
         "CentOS")
-          oci compute image list --c $compartment_id --query "reverse(sort_by(data[?contains(\"display-name\",'CentOS')],&\"time-created\")) |[0:1].{ImageName:\"display-name\", OCID:id, OS:\"operating-system\", Size:\"size-in-mbs\",time:\"time-created\"}" --output table
+          oci compute image list -c $compartment_id --query "reverse(sort_by(data[?contains(\"display-name\",'CentOS')],&\"time-created\")) |[0:1].{ImageName:\"display-name\", OCID:id, OS:\"operating-system\", Size:\"size-in-mbs\",time:\"time-created\"}" --output table
           ocid_img=$(oci compute image list -c $compartment_id --query "reverse(sort_by(data[?contains(\"display-name\",'CentOS')],&\"time-created\")) |[0].id" --raw-output)
           break
           ;;
         "Oracle Autonomus Linux")
-          oci compute image list --c $compartment_id --query "reverse(sort_by(data[?contains(\"display-name\",'Oracle-Autonomous-Linux')],&\"time-created\")) |[0:1].{ImageName:\"display-name\", OCID:id, OS:\"operating-system\", Size:\"size-in-mbs\",time:\"time-created\"}" --output table
+          oci compute image list -c $compartment_id --query "reverse(sort_by(data[?contains(\"display-name\",'Oracle-Autonomous-Linux')],&\"time-created\")) |[0:1].{ImageName:\"display-name\", OCID:id, OS:\"operating-system\", Size:\"size-in-mbs\",time:\"time-created\"}" --output table
           ocid_img=$(oci compute image list -c $compartment_id --query "reverse(sort_by(data[?contains(\"display-name\",'Oracle-Autonomous-Linux')],&\"time-created\")) |[0].id" --raw-output)
           break
           ;;
         "Ubuntu")
-          oci compute image list --c $compartment_id --query "reverse(sort_by(data[?contains(\"display-name\",'Canonical-Ubuntu')],&\"time-created\")) |[0:1].{ImageName:\"display-name\", OCID:id, OS:\"operating-system\", Size:\"size-in-mbs\",time:\"time-created\"}" --output table
+          oci compute image list -c $compartment_id --query "reverse(sort_by(data[?contains(\"display-name\",'Canonical-Ubuntu')],&\"time-created\")) |[0:1].{ImageName:\"display-name\", OCID:id, OS:\"operating-system\", Size:\"size-in-mbs\",time:\"time-created\"}" --output table
           ocid_img=$(oci compute image list -c $compartment_id --query "reverse(sort_by(data[?contains(\"display-name\",'Canonical-Ubuntu')],&\"time-created\")) |[0].id" --raw-output)
           break
           ;;
         "Windows")
-          oci compute image list --c $compartment_id --query "reverse(sort_by(data[?contains(\"display-name\",'Windows')],&\"time-created\")) |[0:1].{ImageName:\"display-name\", OCID:id, OS:\"operating-system\", Size:\"size-in-mbs\",time:\"time-created\"}" --output table
+          oci compute image list -c $compartment_id --query "reverse(sort_by(data[?contains(\"display-name\",'Windows')],&\"time-created\")) |[0:1].{ImageName:\"display-name\", OCID:id, OS:\"operating-system\", Size:\"size-in-mbs\",time:\"time-created\"}" --output table
           ocid_img=$(oci compute image list -c $compartment_id --query "reverse(sort_by(data[?contains(\"display-name\",'Windows')],&\"time-created\")) |[0].id" --raw-output)
           break
           ;;         
