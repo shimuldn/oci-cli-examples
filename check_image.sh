@@ -1,39 +1,28 @@
 #!/bin/bash
 # Author Brokedba https://twitter.com/BrokeDba
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+BLUE='\033[1;34m'
+NC='\033[0m' # No Color
 
-echo "******* Oci Image Selecta ! ************"
-echo "Choose your Destiny ||{**}||" 
-echo
-PS3='Select an option and press Enter: '
-options=("Oracle-Linux" "CentOS" "Oracle Autonomus Linux" "Ubuntu" "Windows" "Exit?" "All")
-select opt in "${options[@]}"
-do
-  case $opt in
-        "Oracle-Linux")
-          oci compute image list --cid $compartment_id --query "reverse(sort_by(data[?contains(\"display-name\",'Oracle-Linux')],&\"time-created\")) |[0:1].{ImageName:\"display-name\", OCID:id, OS:\"operating-system\", Size:\"size-in-mbs\",time:\"time-created\"}" --output table
-          ;;
-        "CentOS")
-          oci compute image list --cid $compartment_id --query "reverse(sort_by(data[?contains(\"display-name\",'CentOS')],&\"time-created\")) |[0:1].{ImageName:\"display-name\", OCID:id, OS:\"operating-system\", Size:\"size-in-mbs\",time:\"time-created\"}" --output table
-          break
-          ;;
-          
-        "Oracle Autonomus Linux")
-          oci compute image list --cid $compartment_id --query "reverse(sort_by(data[?contains(\"display-name\",'Oracle-Autonomous-Linux')],&\"time-created\")) |[0:1].{ImageName:\"display-name\", OCID:id, OS:\"operating-system\", Size:\"size-in-mbs\",time:\"time-created\"}" --output table
-          ;;
-        "Ubuntu")
-          oci compute image list --cid $compartment_id --query "reverse(sort_by(data[?contains(\"display-name\",'Canonical-Ubuntu')],&\"time-created\")) |[0:1].{ImageName:\"display-name\", OCID:id, OS:\"operating-system\", Size:\"size-in-mbs\",time:\"time-created\"}" --output table
-          ;;
-        "Windows")
-          oci compute image list --cid $compartment_id --query "reverse(sort_by(data[?contains(\"display-name\",'Windows')],&\"time-created\")) |[0:1].{ImageName:\"display-name\", OCID:id, OS:\"operating-system\", Size:\"size-in-mbs\",time:\"time-created\"}" --output table
-          ;;
-        "All")
-          oci compute image list --cid $compartment_id --query "reverse(sort_by(data[*],&\"display-name\")) |[*].{ImageName:\"display-name\", OCID:id, OS:\"operating-system\", Size:\"size-in-mbs\"}" --output table
-          ;;          
-        "Exit?")
-          exit 
-          ;;                              
-        *) echo "invalid option";;
-  esac
-done
-echo "*********************"
-#ocid_img=$(oci compute image list -c $compartment_id --operating-system "Oracle Linux" --operating-system-version "7.8" --shape "VM.Standard2.1"   --query 'data[0].id'  --raw-output)
+while true; do
+ oci compute instance list -c $compartment_id  --query "data[*].{name:\"display-name\",state:\"lifecycle-state\",FD:\"fault-domain\",shape:shape,region:region}" --output table 
+ read -p "select theinctance you wish to check the details from [Demo-Cli-Instance]: " instance_name
+ instance_name=${instance_name:-Demo-Cli-Instance}
+ ocid_instance=$(oci compute instance list -c $compartment_id --query "data [?\"display-name\"==\`$instance_name\`] | [0].id" --raw-output)
+    if [ -n "$ocid_instance" ];
+        then  
+        echo selected instance name : $instance_name
+        break
+        else
+        echo  "Entered instance name is not valid. Please retry"
+    fi
+done 
+echo -e "${GREEN}==============================="
+echo -e "${BLUE}    INSTANCE INFO"
+echo -e "${GREEN}===============================${NC}"  
+     ocid_sub=$(oci compute instance list-vnics --instance-id "${ocid_instance}" --query "data[0].\"subnet-id\"" --raw-output)
+     ocid_vcn=$(oci network subnet get --subnet-id $ocid_sub --query "data.\"vcn-id\"" --raw-output)
+     oci network vcn get --vcn-id $ocid_vcn --query "data.{CIDR:\"cidr-block\", VCN_NAME:\"display-name\", DOMAIN_NAME:\"vcn-domain-name\", DNS:\"dns-label\"}" --output table
+     oci network subnet get --subnet-id $ocid_sub --query "data.{SUBNAME:\"display-name\",SUB_CIDR:\"cidr-block\",subdomain:\"subnet-domain-name\"}" --output table
+     oci compute instance list-vnics --instance-id "${ocid_instance}" --query "data[0].{private:\"private-ip\",public:\"public-ip\",Instance:\"display-name\",ocpus:\"shape-config\".ocpus,RAM:\"shape-config\".\"memory-in-gbs\"}" --output table
